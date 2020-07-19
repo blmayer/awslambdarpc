@@ -45,9 +45,12 @@ func Invoke(addr, eventFile string, data []byte) {
 		os.Stderr.WriteString("call error: " + err.Error() + "\n")
 		os.Exit(-6)
 	}
+
 	if reply.Error != nil {
-		os.Stdout.WriteString(reply.Error.Message)
+		os.Stderr.WriteString("lambda returned error:\n")
+		os.Stdout.WriteString(reply.Error.Message + "\n")
 	} else {
-		os.Stdout.WriteString(string(reply.Payload))
+		os.Stdout.WriteString(string(reply.Payload) + "\n")
 	}
+	os.Exit(0)
 }
