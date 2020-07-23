@@ -1,4 +1,4 @@
-package awslambdarpc
+package main
 
 import (
 	"net/rpc"
