@@ -1,5 +1,7 @@
 # awslambdarpc
 
+[![Build Status](https://travis-ci.org/blmayer/awslambdarpc.svg?branch=master)](https://travis-ci.org/blmayer/awslambdarpc)
+
 > Small utility to make RPC requests to a locally running AWS Lambda, for development purposes.
 
 ## Installing
