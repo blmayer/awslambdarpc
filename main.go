@@ -2,8 +2,6 @@ package awslambdarpc
 
 import (
 	"os"
-
-	"github.com/blmayer/awslambdarpc"
 )
 
 const help = `awslambdarpc is an utility to make requests to your local AWS Lambda
@@ -56,5 +54,5 @@ func main() {
 		}
 	}
 
-	awslambdarpc.Invoke(addr, eventFile, payload)
+	Invoke(addr, eventFile, payload)
 }
