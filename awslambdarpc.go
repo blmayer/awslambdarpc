@@ -19,8 +19,8 @@ Available options:
   -h
   --help	show this help
 Examples:
-  awslambdarpc -h localhost:3000 -e events/input.json
-  awslambdarpc -h localhost:3000 -d '{"body": "Hello World!"}'`
+  awslambdarpc -a localhost:3000 -e events/input.json
+  awslambdarpc -a localhost:3000 -d '{"body": "Hello World!"}'`
 
 func main() {
 	addr := "localhost:8080"
