@@ -1,56 +1,36 @@
+// package client provides the function to make a RPC request to a
+// lambda function and read the response.
 package client
 
 import (
+	"fmt"
 	"net/rpc"
-	"os"
 
 	"github.com/aws/aws-lambda-go/lambda/messages"
 )
 
 // Invoke makes the request to the local lambda function running
-// on the address specified.
-func Invoke(addr, eventFile string, data []byte) {
+// on the address specified in addr.
+// data is the payload used in the request, eg. a JSON to be passed
+// to the lambda function as body.
+// If the lambda returned an error then this function will return
+// the error message in the error interface
+func Invoke(addr string, data []byte) ([]byte, error) {
 	request := messages.InvokeRequest{Payload: data}
 	client, err := rpc.Dial("tcp", addr)
 	if err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
-		os.Exit(-2)
+		return nil, err
 	}
 
-	// Read event file
-	if eventFile != "" {
-		f, err := os.Open(eventFile)
-		if err != nil {
-			os.Stderr.WriteString("error opening file: " + err.Error() + "\n")
-			os.Exit(-3)
-		}
-
-		fileInfo, _ := f.Stat()
-		payload := make([]byte, fileInfo.Size())
-		n, err := f.Read(payload)
-		if int64(n) != fileInfo.Size() {
-			os.Stderr.WriteString("error: could not read whole file" + "\n")
-			os.Exit(-4)
-		}
-		if err != nil {
-			os.Stderr.WriteString("error reading file: " + err.Error() + "\n")
-			os.Exit(-5)
-		}
-		request.Payload = payload
-	}
-
-	var reply messages.InvokeResponse
-	err = client.Call("Function.Invoke", request, &reply)
+	var r messages.InvokeResponse
+	err = client.Call("Function.Invoke", request, &r)
 	if err != nil {
-		os.Stderr.WriteString("call error: " + err.Error() + "\n")
-		os.Exit(-6)
+		return nil, err
 	}
 
-	if reply.Error != nil {
-		os.Stderr.WriteString("lambda returned error:\n")
-		os.Stdout.WriteString(reply.Error.Message + "\n")
-	} else {
-		os.Stdout.WriteString(string(reply.Payload) + "\n")
+	if r.Error != nil {
+		return nil, fmt.Errorf("lambda returned error:\n%s", r.Error.Message)
 	}
-	os.Exit(0)
+
+	return r.Payload, nil
 }
