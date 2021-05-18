@@ -1,3 +1,34 @@
+/*
+
+awslambdarpc is an utility to make requests to your local AWS Lambda.
+
+
+This tool is a CLI, and running awslambdarpc help will show your options.
+It uses the client package for the real interaction with AWS Lambda, you can
+import and use it if you wish.
+
+Usage:
+
+	awslambdarpc [options]
+
+Available options:
+	-a, --address
+		the address of your local running function, defaults to localhost:8080
+	-e, --event
+		path to the event JSON to be used as input
+	-d, --data
+		data passed to the function as input, in JSON format, defaults to "{}"
+	help, -h, --help
+		show this help
+
+To make a request to a lambda function running at localhost:3000 and passing
+the contents of a file, events/input.json as payload:
+	awslambdarpc -a localhost:3000 -e events/input.json
+
+You can do passing the data directly with the -d flag:
+	awslambdarpc -a localhost:3000 -d '{"body": "Hello World!"}'
+
+*/
 package main
 
 import (
@@ -16,6 +47,7 @@ Available options:
   --event	path to the event JSON to be used as input
   -d
   --data	data passed to the function as input, in JSON format, defaults to "{}"
+  help
   -h
   --help	show this help
 Examples:
@@ -29,24 +61,37 @@ func main() {
 
 	for i := 1; i < len(os.Args); i++ {
 		switch os.Args[i] {
-		case "-a":
-			fallthrough
-		case "--address":
+		case "-a", "--address":
 			i++
 			addr = os.Args[i]
-		case "-e":
-			fallthrough
-		case "--event":
+		case "-e", "--event":
 			i++
-			eventFile = os.Args[i]
-		case "-d":
-			fallthrough
-		case "--data":
+
+			// Read event file
+			if os.Args[i] != "" {
+				f, err := os.Open(eventFile)
+				if err != nil {
+					os.Stderr.WriteString("error opening file: " + err.Error() + "\n")
+					os.Exit(-3)
+				}
+
+				fileInfo, _ := f.Stat()
+				content := make([]byte, fileInfo.Size())
+				n, err := f.Read(content)
+				if int64(n) != fileInfo.Size() {
+					os.Stderr.WriteString("error: could not read whole file" + "\n")
+					os.Exit(-4)
+				}
+				if err != nil {
+					os.Stderr.WriteString("error reading file: " + err.Error() + "\n")
+					os.Exit(-5)
+				}
+				payload = content
+			}
+		case "-d", "--data":
 			i++
 			payload = []byte(os.Args[i])
-		case "-h":
-			fallthrough
-		case "--help":
+		case "-h", "--help", "help":
 			println(help)
 			os.Exit(0)
 		default:
@@ -56,5 +101,10 @@ func main() {
 		}
 	}
 
-	client.Invoke(addr, eventFile, payload)
+	res, err := client.Invoke(addr, payload)
+	if err != nil {
+		os.Stderr.WriteString(err.Error() + "\n")
+		os.Exit(-2)
+	}
+	println(string(res))
 }
