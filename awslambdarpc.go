@@ -66,6 +66,7 @@ func main() {
 			addr = os.Args[i]
 		case "-e", "--event":
 			i++
+			eventFile = os.Args[i]
 
 			// Read event file
 			if os.Args[i] != "" {
