@@ -26,14 +26,16 @@ the contents of a file, events/input.json as payload:
 	awslambdarpc -a localhost:3000 -e events/input.json
 
 You can do passing the data directly with the -d flag:
-	awslambdarpc -a localhost:3000 -d '{"body": "Hello World!"}'
 
+	awslambdarpc -a localhost:3000 -d '{"body": "Hello World!"}'
 */
 package main
 
 import (
 	"os"
+	"time"
 
+	"github.com/aws/aws-lambda-go/lambda/messages"
 	"github.com/blmayer/awslambdarpc/client"
 )
 
@@ -42,11 +44,12 @@ Usage:
   awslambdarpc [options]
 Available options:
   -a
-  --address	the address of your local running function, defaults to localhost:8080
+  --address         the address of your local running function, defaults to localhost:8080
   -e
-  --event	path to the event JSON to be used as input
+  --event           path to the event JSON to be used as input
   -d
-  --data	data passed to the function as input, in JSON format, defaults to "{}"
+  --data            data passed to the function as input, in JSON format, defaults to "{}"
+  --execution-limit maximum execution limit for your handler, expressed as a duration, defaults to 15s
   help
   -h
   --help	show this help
@@ -57,6 +60,7 @@ Examples:
 func main() {
 	addr := "localhost:8080"
 	payload := []byte("{}")
+	executionLimit := 15 * time.Second
 	var eventFile string
 
 	for i := 1; i < len(os.Args); i++ {
@@ -92,6 +96,14 @@ func main() {
 		case "-d", "--data":
 			i++
 			payload = []byte(os.Args[i])
+		case "--execution-limit":
+			i++
+			duration, err := time.ParseDuration(os.Args[i])
+			if err != nil {
+				os.Stderr.WriteString("error parsing execution limit: " + err.Error() + "\n")
+				os.Exit(-6)
+			}
+			executionLimit = duration
 		case "-h", "--help", "help":
 			println(help)
 			os.Exit(0)
@@ -102,7 +114,11 @@ func main() {
 		}
 	}
 
-	res, err := client.Invoke(addr, payload)
+	deadline := time.Now().Add(executionLimit)
+	res, err := client.Invoke(addr, payload, messages.InvokeRequest_Timestamp{
+		Seconds: deadline.Unix(),
+		Nanos:   int64(deadline.Nanosecond()),
+	})
 	if err != nil {
 		os.Stderr.WriteString(err.Error() + "\n")
 		os.Exit(-2)
