@@ -18,6 +18,8 @@ Available options:
 		path to the event JSON to be used as input
 	-d, --data
 		data passed to the function as input, in JSON format, defaults to "{}"
+	-l, --execution-limit
+		maximum execution limit for your handler, expressed as a duration, defaults to 15s
 	help, -h, --help
 		show this help
 
@@ -35,7 +37,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-lambda-go/lambda/messages"
 	"github.com/blmayer/awslambdarpc/client"
 )
 
@@ -96,7 +97,7 @@ func main() {
 		case "-d", "--data":
 			i++
 			payload = []byte(os.Args[i])
-		case "--execution-limit":
+		case "-l", "--execution-limit":
 			i++
 			duration, err := time.ParseDuration(os.Args[i])
 			if err != nil {
@@ -114,11 +115,7 @@ func main() {
 		}
 	}
 
-	deadline := time.Now().Add(executionLimit)
-	res, err := client.Invoke(addr, payload, messages.InvokeRequest_Timestamp{
-		Seconds: deadline.Unix(),
-		Nanos:   int64(deadline.Nanosecond()),
-	})
+	res, err := client.Invoke(addr, payload, executionLimit)
 	if err != nil {
 		os.Stderr.WriteString(err.Error() + "\n")
 		os.Exit(-2)
