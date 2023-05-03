@@ -1,6 +1,6 @@
 # awslambdarpc
 
-[![Build Status](https://travis-ci.org/blmayer/awslambdarpc.svg?branch=master)](https://travis-ci.org/blmayer/awslambdarpc)
+[![Go Report Card](https://goreportcard.com/badge/github.com/blmayer/awslambdarpc)](https://goreportcard.com/report/github.com/blmayer/awslambdarpc)
 [![Go Reference](https://pkg.go.dev/badge/github.com/blmayer/awslambdarpc.svg)](https://pkg.go.dev/github.com/blmayer/awslambdarpc)
 
 > Small utility to make RPC requests to a locally running AWS Lambda, for development purposes.
