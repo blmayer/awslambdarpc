@@ -36,6 +36,7 @@ package main
 import (
 	"os"
 	"time"
+	"fmt"
 
 	"github.com/blmayer/awslambdarpc/client"
 )
@@ -120,5 +121,6 @@ func main() {
 		os.Stderr.WriteString(err.Error() + "\n")
 		os.Exit(-2)
 	}
-	println(string(res))
+
+        fmt.Println(string(res))
 }
